@@ -675,6 +675,26 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
             </div>
           )}
 
+          {/* Database Connection Warning Banner */}
+          {dbMode === 'Local Storage' && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-5 mb-8 flex flex-col md:flex-row items-start justify-between gap-4 shadow-sm animate-fade-in">
+              <div className="flex items-start space-x-3.5">
+                <div className="bg-amber-500 text-white p-2 rounded-xl mt-0.5 shrink-0">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm text-amber-950">⚠️ ডেটাবেজ সংযোগ সতর্কতা: লোকাল স্টোরেজ মোড সক্রিয়!</h4>
+                  <p className="text-xs text-amber-800/90 mt-1 leading-relaxed">
+                    আপনার পোর্টফোলিও বর্তমানে <strong>লোকাল ফাইল মোডে (Local Storage)</strong> ডেটা সংরক্ষণ করছে। আপনি যখনই গিটহাব-এ নতুন কোড পুশ করবেন অথবা রেলওয়ে (Railway)-তে আপনার অ্যাপলিকেশন রিডিপ্লয় হবে, লোকাল ফাইলের সমস্ত ডেটা সম্পূর্ণ মুছে যাবে!
+                  </p>
+                  <p className="text-xs text-amber-800/90 mt-1.5 leading-relaxed font-semibold">
+                    সঠিক সমাধান: আপনার Railway বা হোস্টিং ড্যাশবোর্ডে গিয়ে <code className="bg-amber-100 px-1.5 py-0.5 rounded text-amber-950 font-mono text-[11px] select-all">MONGODB_URI</code> নামের একটি Environment Variable (পরিবেশ ভেরিয়েবল) যুক্ত করুন এবং আপনার মংগোডিবি ইউআরএল-এর <code className="bg-amber-100 px-1 py-0.5 rounded font-mono">username:password</code> অংশটিকে আসল ডাটাবেজ ব্যবহারকারীর নাম ও পাসওয়ার্ড দিয়ে প্রতিস্থাপন করুন।
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* STATS OVERVIEW HEADER CARDS (Bento block) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4">
