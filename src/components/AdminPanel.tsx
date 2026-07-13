@@ -500,7 +500,7 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
                 </span>
                 <input
                   type="text"
-                  placeholder="admin"
+                  placeholder="ইউজারনেম"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 focus:border-blue-600 rounded-xl focus:outline-none transition font-semibold"
@@ -533,10 +533,6 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
             >
               {isLoggingIn ? 'যাচাই করা হচ্ছে...' : 'লগইন করুন'}
             </button>
-
-            <div className="text-center pt-2 text-xs text-gray-400 font-medium">
-              Railway হোস্টিংয়ে MongoDB ডেটাবেজ সংযোগ সক্রিয় থাকবে।
-            </div>
           </form>
         </div>
       </div>
