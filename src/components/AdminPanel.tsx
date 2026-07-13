@@ -37,8 +37,25 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
+  const [captchaNum1, setCaptchaNum1] = useState(0);
+  const [captchaNum2, setCaptchaNum2] = useState(0);
+  const [captchaAnswerInput, setCaptchaAnswerInput] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // Bengali number digits helper
+  const bengaliDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+  const toBengaliNumber = (num: number): string => {
+    return num.toString().split('').map(digit => bengaliDigits[parseInt(digit, 10)] || digit).join('');
+  };
+
+  const generateCaptcha = () => {
+    const num1 = Math.floor(Math.random() * 9) + 1;
+    const num2 = Math.floor(Math.random() * 9) + 1;
+    setCaptchaNum1(num1);
+    setCaptchaNum2(num2);
+    setCaptchaAnswerInput('');
+  };
 
   // Active Admin Tab: 'news' | 'messages' | 'settings' | 'admins'
   const [activeTab, setActiveTab] = useState<'news' | 'messages' | 'settings' | 'admins'>('news');
@@ -108,11 +125,15 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
             loadDashboardData();
           } else {
             localStorage.removeItem('arfan_admin_token');
+            generateCaptcha();
           }
         })
         .catch(() => {
           localStorage.removeItem('arfan_admin_token');
+          generateCaptcha();
         });
+    } else {
+      generateCaptcha();
     }
   }, []);
 
@@ -197,6 +218,15 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
       return;
     }
 
+    // Verify math captcha
+    const correctAnswer = captchaNum1 + captchaNum2;
+    const userAnswer = parseInt(captchaAnswerInput.trim(), 10);
+    if (isNaN(userAnswer) || userAnswer !== correctAnswer) {
+      setLoginError('ক্যাপচা উত্তরটি সঠিক নয়! দয়া করে সঠিক যোগফলটি লিখুন।');
+      generateCaptcha();
+      return;
+    }
+
     setIsLoggingIn(true);
     try {
       const res = await fetch('/api/auth/login', {
@@ -213,9 +243,11 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
         onRefreshPortfolio();
       } else {
         setLoginError(data.error || 'ভুল ব্যবহারকারীর নাম অথবা পাসওয়ার্ড!');
+        generateCaptcha();
       }
     } catch (err) {
       setLoginError('সার্ভারে যোগাযোগ করা যাচ্ছে না। দয়া করে আবার চেষ্টা করুন।');
+      generateCaptcha();
     } finally {
       setIsLoggingIn(false);
     }
@@ -523,6 +555,41 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 focus:border-blue-600 rounded-xl focus:outline-none transition"
                   disabled={isLoggingIn}
                 />
+              </div>
+            </div>
+
+            {/* Math Captcha Block */}
+            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-blue-900 uppercase tracking-wider">নিরাপত্তা ক্যাপচা (যোগফল লিখুন)</label>
+                <button
+                  type="button"
+                  onClick={generateCaptcha}
+                  className="p-1 hover:bg-blue-100/80 text-blue-800 rounded-lg transition"
+                  title="নতুন ক্যাপচা জেনারেট করুন"
+                  disabled={isLoggingIn}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-900 text-white font-black text-lg py-2.5 px-5 rounded-xl select-none tracking-widest font-mono shadow-sm">
+                  {toBengaliNumber(captchaNum1)} + {toBengaliNumber(captchaNum2)} = ?
+                </div>
+                <div className="flex-1 relative">
+                  <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                    <CheckCircle className="w-5 h-5" />
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="উত্তর"
+                    value={captchaAnswerInput}
+                    onChange={(e) => setCaptchaAnswerInput(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 focus:border-blue-600 rounded-xl focus:outline-none transition font-extrabold text-lg text-blue-900 text-center"
+                    disabled={isLoggingIn}
+                  />
+                </div>
               </div>
             </div>
 
