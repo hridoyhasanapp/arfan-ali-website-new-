@@ -169,7 +169,23 @@ let AdminModel: mongoose.Model<any>;
 
 // Safe Lazy Initialization
 export async function connectDB() {
-  const uri = process.env.MONGODB_URI;
+  let uri = process.env.MONGODB_URI || process.env.MONGODB_URL || process.env.MONGO_URL || process.env.MONGO_URI;
+
+  // Construct from Railway default individual env variables if single URI is not present
+  if (!uri && process.env.MONGOHOST) {
+    const user = process.env.MONGOUSER || '';
+    const pass = process.env.MONGOPASSWORD || '';
+    const host = process.env.MONGOHOST;
+    const port = process.env.MONGOPORT || '27017';
+    const db = process.env.MONGODATABASE || 'portfolio';
+    
+    if (user && pass) {
+      uri = `mongodb://${encodeURIComponent(user)}:${encodeURIComponent(pass)}@${host}:${port}/${db}?authSource=admin`;
+    } else {
+      uri = `mongodb://${host}:${port}/${db}`;
+    }
+    console.log(`🔌 Constructed MongoDB connection string from Railway variables: mongodb://***:***@${host}:${port}/${db}`);
+  }
 
   if (!uri || uri.includes('MY_MONGODB_URI') || uri.includes('username:password')) {
     console.warn('⚠️ MONGODB_URI is not set or placeholder. Operating in fallback JSON storage mode.');
@@ -181,13 +197,15 @@ export async function connectDB() {
   try {
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(uri, {
-        serverSelectionTimeoutMS: 5000 // timeout quickly if unavailable
+        serverSelectionTimeoutMS: 10000 // allow up to 10s for slow cloud connections
       });
       console.log('🔌 Connected to MongoDB successfully.');
-      useMongoDB = true;
-      initMongoModels();
-      await seedMongoDatabase();
+    } else {
+      console.log(`🔌 Mongoose already in state: ${mongoose.connection.readyState}. Re-asserting MongoDB mode.`);
     }
+    useMongoDB = true;
+    initMongoModels();
+    await seedMongoDatabase();
   } catch (error) {
     console.error('❌ MongoDB Connection failed. Falling back to local JSON storage. Error:', error);
     fallbackDB = initFallbackDB();
