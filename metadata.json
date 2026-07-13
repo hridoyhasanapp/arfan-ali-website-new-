@@ -1,0 +1,6 @@
+{
+  "name": "Arfan Ali Portfolio",
+  "description": "শেরপুর জেলা প্রতিনিধি ও দ্য ডেইলি ক্যাম্পাস সাংবাদিক আরফান আলীর পেশাদার পোর্টফোলিও ওয়েবসাইট।",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
