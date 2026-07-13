@@ -33,6 +33,7 @@ export default function Footer({ settings, onOpenAdmin }: { settings?: any; onOp
         {/* Copyright Line */}
         <div className="text-center text-xs text-gray-600 md:order-last flex flex-col items-center md:items-end">
           <p>সর্বস্বত্ব সংরক্ষিত © ২০২৬ {settings?.heroTitle || 'আরফান আলী'}।</p>
+          <p className="text-[11px] text-gray-500 font-semibold mt-1">Developed by <span className="text-blue-500 hover:text-blue-400 transition">Hridoy Hasan</span></p>
           <div className="mt-1.5 flex items-center space-x-2">
             <button
               onClick={onOpenAdmin}

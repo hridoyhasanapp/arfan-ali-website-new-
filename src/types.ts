@@ -41,5 +41,12 @@ export interface SettingsType {
   whatsappNumber: string;
   facebookLink: string;
   emailAddress: string;
+  logoUrl?: string;
+}
+
+export interface AdminType {
+  username: string;
+  passwordHash: string;
+  createdAt: string;
 }
 

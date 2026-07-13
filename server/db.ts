@@ -37,6 +37,13 @@ export interface SettingsType {
   whatsappNumber: string;
   facebookLink: string;
   emailAddress: string;
+  logoUrl?: string;
+}
+
+export interface AdminType {
+  username: string;
+  passwordHash: string;
+  createdAt: string;
 }
 
 // Default Data Seeds
@@ -82,7 +89,8 @@ const DEFAULT_SETTINGS: SettingsType = {
   aboutQuote: 'সাংবাদিকতা কেবল একটি পেশা নয়, এটি সমাজ পরিবর্তনের এক মহৎ হাতিয়ার। নিরপেক্ষ সংবাদ পরিবেশন ও সমাজ সংস্কারের দায়িত্ব নিয়েই আমি প্রতিটি দিন কাজ করি।',
   whatsappNumber: '০১৩২৮-৩২০৭৬৮',
   facebookLink: 'https://www.facebook.com/arfan.ali.01328320768',
-  emailAddress: 'arfanali606034@gmail.com'
+  emailAddress: 'arfanali606034@gmail.com',
+  logoUrl: ''
 };
 
 // Fallback JSON file path
@@ -94,6 +102,7 @@ interface FallbackDB {
   news: NewsArticleType[];
   messages: MessageType[];
   settings: SettingsType;
+  admins?: AdminType[];
 }
 
 // Initialize fallback file
@@ -110,7 +119,14 @@ function initFallbackDB(): FallbackDB {
       return {
         news: parsed.news || DEFAULT_NEWS,
         messages: parsed.messages || [],
-        settings: parsed.settings || DEFAULT_SETTINGS
+        settings: { ...DEFAULT_SETTINGS, ...parsed.settings },
+        admins: parsed.admins || [
+          {
+            username: 'admin',
+            passwordHash: '$2a$10$v0S6Bv0qP7KbykS7pEExEebjOn87Gz3m7Xv18Wp.Xy3jQ3UOnN8Yy', // securepassword123
+            createdAt: new Date().toLocaleDateString('bn-BD')
+          }
+        ]
       };
     } catch (e) {
       console.error('Failed to read fallback DB, resetting to defaults:', e);
@@ -120,7 +136,14 @@ function initFallbackDB(): FallbackDB {
   const initialDB: FallbackDB = {
     news: DEFAULT_NEWS,
     messages: [],
-    settings: DEFAULT_SETTINGS
+    settings: DEFAULT_SETTINGS,
+    admins: [
+      {
+        username: 'admin',
+        passwordHash: '$2a$10$v0S6Bv0qP7KbykS7pEExEebjOn87Gz3m7Xv18Wp.Xy3jQ3UOnN8Yy', // securepassword123
+        createdAt: new Date().toLocaleDateString('bn-BD')
+      }
+    ]
   };
   fs.writeFileSync(FALLBACK_FILE_PATH, JSON.stringify(initialDB, null, 2), 'utf-8');
   return initialDB;
@@ -138,6 +161,7 @@ export function isUsingMongoDB(): boolean {
 let NewsModel: mongoose.Model<any>;
 let MessageModel: mongoose.Model<any>;
 let SettingsModel: mongoose.Model<any>;
+let AdminModel: mongoose.Model<any>;
 
 // Safe Lazy Initialization
 export async function connectDB() {
@@ -197,13 +221,21 @@ function initMongoModels() {
     aboutQuote: { type: String, default: DEFAULT_SETTINGS.aboutQuote },
     whatsappNumber: { type: String, default: DEFAULT_SETTINGS.whatsappNumber },
     facebookLink: { type: String, default: DEFAULT_SETTINGS.facebookLink },
-    emailAddress: { type: String, default: DEFAULT_SETTINGS.emailAddress }
+    emailAddress: { type: String, default: DEFAULT_SETTINGS.emailAddress },
+    logoUrl: { type: String, default: '' }
+  });
+
+  const AdminSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    passwordHash: { type: String, required: true },
+    createdAt: { type: String, default: () => new Date().toLocaleDateString('bn-BD') }
   });
 
   // Export Models safely (handling hot reloading compile triggers)
   NewsModel = mongoose.models.News || mongoose.model('News', NewsSchema);
   MessageModel = mongoose.models.Message || mongoose.model('Message', MessageSchema);
   SettingsModel = mongoose.models.Settings || mongoose.model('Settings', SettingsSchema);
+  AdminModel = mongoose.models.Admin || mongoose.model('Admin', AdminSchema);
 }
 
 async function seedMongoDatabase() {
@@ -218,6 +250,16 @@ async function seedMongoDatabase() {
     if (settingsCount === 0) {
       await SettingsModel.create(DEFAULT_SETTINGS);
       console.log('🌱 Seeded default portfolio settings into MongoDB.');
+    }
+
+    const adminCount = await AdminModel.countDocuments();
+    if (adminCount === 0) {
+      await AdminModel.create({
+        username: 'admin',
+        passwordHash: '$2a$10$v0S6Bv0qP7KbykS7pEExEebjOn87Gz3m7Xv18Wp.Xy3jQ3UOnN8Yy', // securepassword123
+        createdAt: new Date().toLocaleDateString('bn-BD')
+      });
+      console.log('🌱 Seeded default admin into MongoDB.');
     }
   } catch (err) {
     console.error('Failed to seed MongoDB default data:', err);
@@ -330,5 +372,83 @@ export async function updatePortfolioSettings(settings: SettingsType): Promise<S
     fallbackDB.settings = settings;
     saveFallback();
     return settings;
+  }
+}
+
+export async function getAdmins(): Promise<AdminType[]> {
+  if (useMongoDB) {
+    return await AdminModel.find().lean();
+  } else {
+    if (!fallbackDB.admins) {
+      fallbackDB.admins = [
+        {
+          username: 'admin',
+          passwordHash: '$2a$10$v0S6Bv0qP7KbykS7pEExEebjOn87Gz3m7Xv18Wp.Xy3jQ3UOnN8Yy', // securepassword123
+          createdAt: new Date().toLocaleDateString('bn-BD')
+        }
+      ];
+      saveFallback();
+    }
+    return fallbackDB.admins;
+  }
+}
+
+export async function createAdmin(admin: AdminType): Promise<AdminType> {
+  if (useMongoDB) {
+    await AdminModel.create(admin);
+    return admin;
+  } else {
+    if (!fallbackDB.admins) {
+      fallbackDB.admins = [
+        {
+          username: 'admin',
+          passwordHash: '$2a$10$v0S6Bv0qP7KbykS7pEExEebjOn87Gz3m7Xv18Wp.Xy3jQ3UOnN8Yy', // securepassword123
+          createdAt: new Date().toLocaleDateString('bn-BD')
+        }
+      ];
+    }
+    fallbackDB.admins.push(admin);
+    saveFallback();
+    return admin;
+  }
+}
+
+export async function updateAdminPassword(username: string, passwordHash: string): Promise<boolean> {
+  if (useMongoDB) {
+    const result = await AdminModel.updateOne({ username }, { passwordHash });
+    return result.modifiedCount > 0;
+  } else {
+    if (!fallbackDB.admins) {
+      fallbackDB.admins = [
+        {
+          username: 'admin',
+          passwordHash: '$2a$10$v0S6Bv0qP7KbykS7pEExEebjOn87Gz3m7Xv18Wp.Xy3jQ3UOnN8Yy', // securepassword123
+          createdAt: new Date().toLocaleDateString('bn-BD')
+        }
+      ];
+    }
+    const adminIndex = fallbackDB.admins.findIndex(a => a.username === username);
+    if (adminIndex >= 0) {
+      fallbackDB.admins[adminIndex].passwordHash = passwordHash;
+      saveFallback();
+      return true;
+    }
+    return false;
+  }
+}
+
+export async function deleteAdmin(username: string): Promise<boolean> {
+  if (useMongoDB) {
+    const result = await AdminModel.deleteOne({ username });
+    return result.deletedCount > 0;
+  } else {
+    if (!fallbackDB.admins) return false;
+    const filtered = fallbackDB.admins.filter(a => a.username !== username);
+    if (filtered.length !== fallbackDB.admins.length) {
+      fallbackDB.admins = filtered;
+      saveFallback();
+      return true;
+    }
+    return false;
   }
 }

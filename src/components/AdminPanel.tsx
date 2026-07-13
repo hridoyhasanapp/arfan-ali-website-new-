@@ -40,14 +40,27 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // Active Admin Tab: 'news' | 'messages' | 'settings'
-  const [activeTab, setActiveTab] = useState<'news' | 'messages' | 'settings'>('news');
+  // Active Admin Tab: 'news' | 'messages' | 'settings' | 'admins'
+  const [activeTab, setActiveTab] = useState<'news' | 'messages' | 'settings' | 'admins'>('news');
 
   // Backend state
   const [newsList, setNewsList] = useState<NewsReport[]>([]);
   const [messageList, setMessageList] = useState<ContactMessage[]>([]);
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const [dbMode, setDbMode] = useState<'MongoDB' | 'Local Storage'>('Local Storage');
+  const [adminList, setAdminList] = useState<{ username: string; createdAt: string }[]>([]);
+
+  // Admin account creation state
+  const [newAdminUsername, setNewAdminUsername] = useState('');
+  const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [newAdminError, setNewAdminError] = useState('');
+  const [newAdminSuccess, setNewAdminSuccess] = useState('');
+
+  // Password change state
+  const [changePasswordUsername, setChangePasswordUsername] = useState('');
+  const [changePasswordNew, setChangePasswordNew] = useState('');
+  const [changePasswordError, setChangePasswordError] = useState('');
+  const [changePasswordSuccess, setChangePasswordSuccess] = useState('');
 
   // Loaders and alerts
   const [isLoading, setIsLoading] = useState(false);
@@ -74,7 +87,8 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
     aboutQuote: '',
     whatsappNumber: '',
     facebookLink: '',
-    emailAddress: ''
+    emailAddress: '',
+    logoUrl: ''
   });
 
   // Verify authentication on mount
@@ -139,6 +153,20 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
         }
       } catch (dbErr) {
         console.error('Failed to load db status:', dbErr);
+      }
+
+      // 5. Fetch Admin list (Protected)
+      try {
+        const adminsRes = await fetch('/api/admins', { headers });
+        if (adminsRes.ok) {
+          const adminsData = await adminsRes.json();
+          setAdminList(adminsData);
+          if (adminsData.length > 0 && !changePasswordUsername) {
+            setChangePasswordUsername(adminsData[0].username);
+          }
+        }
+      } catch (adminErr) {
+        console.error('Failed to load admins:', adminErr);
       }
 
     } catch (err) {
@@ -338,6 +366,97 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
     }
   };
 
+  // Admin account action handlers
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNewAdminError('');
+    setNewAdminSuccess('');
+    
+    if (!newAdminUsername.trim() || !newAdminPassword.trim()) {
+      setNewAdminError('সবগুলো ফিল্ড পূরণ করুন।');
+      return;
+    }
+
+    const token = localStorage.getItem('arfan_admin_token') || '';
+    try {
+      const res = await fetch('/api/admins', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ username: newAdminUsername, password: newAdminPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNewAdminSuccess('অ্যাডমিন সফলভাবে তৈরি হয়েছে!');
+        setNewAdminUsername('');
+        setNewAdminPassword('');
+        loadDashboardData();
+      } else {
+        setNewAdminError(data.error || 'অ্যাডমিন তৈরি করতে ব্যর্থ।');
+      }
+    } catch (err) {
+      setNewAdminError('সার্ভারে যোগাযোগ করা যাচ্ছে না।');
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setChangePasswordError('');
+    setChangePasswordSuccess('');
+
+    if (!changePasswordUsername || !changePasswordNew.trim()) {
+      setChangePasswordError('সবগুলো ফিল্ড পূরণ করুন।');
+      return;
+    }
+
+    const token = localStorage.getItem('arfan_admin_token') || '';
+    try {
+      const res = await fetch('/api/admins/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ username: changePasswordUsername, newPassword: changePasswordNew })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setChangePasswordSuccess('পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!');
+        setChangePasswordNew('');
+        loadDashboardData();
+      } else {
+        setChangePasswordError(data.error || 'পাসওয়ার্ড পরিবর্তন করতে ব্যর্থ।');
+      }
+    } catch (err) {
+      setChangePasswordError('সার্ভারে যোগাযোগ করা যাচ্ছে না।');
+    }
+  };
+
+  const handleDeleteAdminClick = async (targetUser: string) => {
+    if (!window.confirm(`আপনি কি নিশ্চিতভাবেই "${targetUser}" অ্যাকাউন্টটি ডিলিট করতে চান?`)) return;
+
+    const token = localStorage.getItem('arfan_admin_token') || '';
+    try {
+      const res = await fetch(`/api/admins/${targetUser}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showSuccess('অ্যাডমিন অ্যাকাউন্টটি ডিলিট করা হয়েছে।');
+        loadDashboardData();
+      } else {
+        showError(data.error || 'ডিলিট করতে ব্যর্থ।');
+      }
+    } catch (err) {
+      showError('সার্ভারে যোগাযোগ করা যাচ্ছে না।');
+    }
+  };
+
   // Render Login overlay if not authenticated
   if (!isAuthenticated) {
     return (
@@ -519,6 +638,18 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
           >
             <Settings className="w-5 h-5 shrink-0" />
             <span className="whitespace-nowrap">পোর্টফোলিও সেটিংস</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('admins')}
+            className={`flex-1 md:flex-none flex items-center justify-center md:justify-start space-x-2.5 px-4 py-3 rounded-xl text-sm font-bold transition ${
+              activeTab === 'admins'
+                ? 'bg-blue-900 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            }`}
+          >
+            <User className="w-5 h-5 shrink-0" />
+            <span className="whitespace-nowrap">অ্যাডমিন অ্যাকাউন্টস</span>
           </button>
         </aside>
 
@@ -827,6 +958,58 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
               
               <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-sm">
                 <form onSubmit={handleSaveSettings} className="space-y-6">
+                  {/* Logo/Profile Image Upload */}
+                  <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100/60">
+                    <h3 className="text-sm font-bold text-blue-900 border-b border-blue-100/60 pb-2 mb-4 flex items-center space-x-2">
+                      <User className="w-4 h-4 text-blue-700" />
+                      <span>প্রোফাইল ছবি / লোগো আপলোড (Profile Logo Image)</span>
+                    </h3>
+                    <div className="flex flex-col md:flex-row items-center gap-6">
+                      <div className="w-24 h-24 rounded-full bg-blue-100 border-2 border-blue-200 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+                        {settingsForm.logoUrl ? (
+                          <img src={settingsForm.logoUrl} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="w-10 h-10 text-blue-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2 w-full">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">নতুন ছবি সিলেক্ট করুন (জেপিজি/পিএনজি, সর্বোচ্চ ২ মেগাবাইট)</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (file.size > 2 * 1024 * 1024) {
+                                showError('ছবির সাইজ ২ মেগাবাইটের কম হতে হবে।');
+                                return;
+                              }
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                if (event.target?.result) {
+                                  setSettingsForm({ ...settingsForm, logoUrl: event.target.result as string });
+                                  showSuccess('ছবিটি সফলভাবে আপলোড করা হয়েছে! পরিবর্তন নিশ্চিত করতে নিচে "পরিবর্তন সংরক্ষণ করুন" বাটনে ক্লিক করুন।');
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-blue-900 file:text-white hover:file:bg-blue-800 cursor-pointer"
+                        />
+                        <p className="text-[11px] text-gray-400 font-medium">নোট: আপনার আপলোডকৃত ছবিটি ন্যাভিগেশন বার এবং হোমপেজের ব্যানার কার্ডে প্রদর্শিত হবে।</p>
+                        {settingsForm.logoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setSettingsForm({ ...settingsForm, logoUrl: '' })}
+                            className="text-xs font-extrabold text-rose-600 hover:text-rose-800 transition"
+                          >
+                            ছবি মুছে ফেলুন
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Hero Information */}
                   <div>
                     <h3 className="text-base font-bold text-blue-900 border-b border-gray-100 pb-2 mb-4">হোমপেজ ব্যানার (Hero Section)</h3>
@@ -964,6 +1147,158 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: ADMIN USERS MANAGER */}
+          {activeTab === 'admins' && (
+            <div className="space-y-6 animate-fadeIn">
+              <h2 className="text-xl font-extrabold text-blue-950">অ্যাডমিন অ্যাকাউন্টস ব্যবস্থাপনা</h2>
+              
+              <div className="grid lg:grid-cols-3 gap-6">
+                
+                {/* 1. Add new admin */}
+                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                  <h3 className="text-base font-extrabold text-blue-900 flex items-center space-x-2">
+                    <Plus className="w-5 h-5 text-blue-600" />
+                    <span>নতুন অ্যাডমিন তৈরি</span>
+                  </h3>
+                  
+                  {newAdminError && (
+                    <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3 rounded-xl font-semibold">
+                      {newAdminError}
+                    </div>
+                  )}
+
+                  {newAdminSuccess && (
+                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs p-3 rounded-xl font-semibold">
+                      {newAdminSuccess}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleCreateAdmin} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">ইউজারনেম</label>
+                      <input
+                        type="text"
+                        value={newAdminUsername}
+                        onChange={(e) => setNewAdminUsername(e.target.value)}
+                        placeholder="উদা: arfan_admin"
+                        className="w-full bg-gray-50 border border-gray-200 focus:border-blue-600 rounded-xl px-4 py-2.5 focus:outline-none text-sm font-semibold"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">পাসওয়ার্ড</label>
+                      <input
+                        type="password"
+                        value={newAdminPassword}
+                        onChange={(e) => setNewAdminPassword(e.target.value)}
+                        placeholder="পাসওয়ার্ড লিখুন"
+                        className="w-full bg-gray-50 border border-gray-200 focus:border-blue-600 rounded-xl px-4 py-2.5 focus:outline-none text-sm font-semibold"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition text-xs shadow-md"
+                    >
+                      অ্যাডমিন অ্যাকাউন্ট তৈরি করুন
+                    </button>
+                  </form>
+                </div>
+
+                {/* 2. Change admin password */}
+                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                  <h3 className="text-base font-extrabold text-blue-900 flex items-center space-x-2">
+                    <Edit className="w-5 h-5 text-blue-600" />
+                    <span>পাসওয়ার্ড পরিবর্তন</span>
+                  </h3>
+
+                  {changePasswordError && (
+                    <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3 rounded-xl font-semibold">
+                      {changePasswordError}
+                    </div>
+                  )}
+
+                  {changePasswordSuccess && (
+                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs p-3 rounded-xl font-semibold">
+                      {changePasswordSuccess}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleChangePassword} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">অ্যাডমিন ইউজার সিলেক্ট করুন</label>
+                      <select
+                        value={changePasswordUsername}
+                        onChange={(e) => setChangePasswordUsername(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 focus:border-blue-600 rounded-xl px-4 py-2.5 focus:outline-none text-sm font-semibold"
+                        required
+                      >
+                        {adminList.map((admin) => (
+                          <option key={admin.username} value={admin.username}>
+                            {admin.username}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">নতুন পাসওয়ার্ড</label>
+                      <input
+                        type="password"
+                        value={changePasswordNew}
+                        onChange={(e) => setChangePasswordNew(e.target.value)}
+                        placeholder="কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড"
+                        className="w-full bg-gray-50 border border-gray-200 focus:border-blue-600 rounded-xl px-4 py-2.5 focus:outline-none text-sm font-semibold"
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-indigo-900 hover:bg-indigo-800 text-white font-bold py-3 rounded-xl transition text-xs shadow-md"
+                    >
+                      নতুন পাসওয়ার্ড আপডেট করুন
+                    </button>
+                  </form>
+                </div>
+
+                {/* 3. Existing Admins list */}
+                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                  <h3 className="text-base font-extrabold text-blue-900 flex items-center space-x-2">
+                    <User className="w-5 h-5 text-blue-600" />
+                    <span>বর্তমান অ্যাডমিনদের তালিকা</span>
+                  </h3>
+
+                  <div className="space-y-3 divide-y divide-gray-50">
+                    {adminList.map((admin, index) => (
+                      <div key={admin.username} className={`pt-3 flex items-center justify-between ${index === 0 ? 'pt-0' : ''}`}>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900 font-mono">{admin.username}</p>
+                          <p className="text-[10px] text-gray-400 font-semibold">তৈরি হয়েছে: {admin.createdAt}</p>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteAdminClick(admin.username)}
+                          disabled={adminList.length <= 1}
+                          className="text-xs font-bold text-rose-600 hover:text-rose-800 transition disabled:opacity-30 disabled:cursor-not-allowed p-1.5 hover:bg-rose-50 rounded-lg"
+                          title="অ্যাডমিন ডিলিট করুন"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <p className="text-[11px] text-gray-400 font-semibold leading-relaxed pt-2">
+                    * নিরাপদে থাকার জন্য সিস্টেমে কমপক্ষে একজন অ্যাডমিন অ্যাকাউন্ট থাকা আবশ্যক।
+                  </p>
+                </div>
+
               </div>
             </div>
           )}

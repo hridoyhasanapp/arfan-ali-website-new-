@@ -79,15 +79,24 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
         <a
           href="#home"
           onClick={(e) => handleLinkClick(e, '#root')}
-          className="flex items-center space-x-2 text-2xl font-bold tracking-tight text-blue-950 transition duration-300 hover:text-blue-700"
+          className="flex items-center space-x-1.5 text-xl lg:text-2xl font-bold tracking-tight text-blue-950 transition duration-300 hover:text-blue-700 whitespace-nowrap"
           id="navbar-logo"
         >
-          <span className="bg-blue-900 text-white p-1.5 rounded-lg text-sm mr-1 font-mono">AA</span>
-          {settings?.heroTitle || 'আরফান আলী'}
+          {settings?.logoUrl ? (
+            <img 
+              src={settings.logoUrl} 
+              alt="Logo" 
+              className="w-8 h-8 rounded-full object-cover mr-1 border border-blue-200" 
+              referrerPolicy="no-referrer" 
+            />
+          ) : (
+            <span className="bg-blue-900 text-white p-1.5 rounded-lg text-xs mr-1 font-mono">AA</span>
+          )}
+          <span>{settings?.heroTitle || 'আরফান আলী'}</span>
         </a>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center space-x-1" id="navbar-desktop-menu">
+        <div className="hidden lg:flex items-center space-x-1 xl:space-x-2" id="navbar-desktop-menu">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeSection === item.href.slice(1);
@@ -96,13 +105,13 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
                 key={item.href}
                 href={item.href}
                 onClick={(e) => handleLinkClick(e, item.href)}
-                className={`flex items-center space-x-1.5 px-4 py-2 rounded-lg text-base font-semibold transition-all duration-200 ${
+                className={`flex items-center space-x-1 px-2.5 py-2 rounded-lg text-sm xl:text-base font-semibold whitespace-nowrap transition-all duration-200 ${
                   isActive
                     ? 'text-blue-900 bg-blue-50/70 border-b-2 border-blue-600 rounded-b-none'
                     : 'text-gray-600 hover:text-blue-700 hover:bg-gray-50'
                 }`}
               >
-                <Icon className="w-4 h-4 opacity-70" />
+                <Icon className="w-3.5 h-3.5 opacity-70" />
                 <span>{item.label}</span>
               </a>
             );
@@ -110,22 +119,22 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
         </div>
 
         {/* Action Button */}
-        <div className="hidden md:flex items-center space-x-2.5" id="navbar-desktop-action">
+        <div className="hidden lg:flex items-center space-x-2 whitespace-nowrap" id="navbar-desktop-action">
           <button
             onClick={onOpenAdmin}
-            className="flex items-center space-x-1.5 bg-gray-50 text-blue-900 border border-blue-200 hover:bg-blue-50 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer shadow-sm"
+            className="flex items-center space-x-1.5 bg-gray-50 text-blue-900 border border-blue-200 hover:bg-blue-100 px-2.5 py-2 rounded-lg text-xs font-bold transition cursor-pointer shadow-sm whitespace-nowrap"
             title="অ্যাডমিন ড্যাশবোর্ড"
           >
-            <Lock className="w-3.5 h-3.5 text-blue-800" />
+            <Lock className="w-3 h-3 text-blue-800" />
             <span>অ্যাডমিন লগইন</span>
           </button>
           <a
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm hover:shadow transition duration-200"
+            className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2.5 py-2 rounded-lg text-xs shadow-sm hover:shadow transition duration-200 whitespace-nowrap"
           >
-            <Phone className="w-3.5 h-3.5" />
+            <Phone className="w-3 h-3" />
             <span>হোয়াটসঅ্যাপ</span>
           </a>
         </div>
@@ -134,7 +143,7 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
         <button
           id="menu-btn"
           onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden text-gray-700 p-1.5 hover:bg-gray-100 rounded-lg focus:outline-none transition-all"
+          className="lg:hidden text-gray-700 p-1.5 hover:bg-gray-100 rounded-lg focus:outline-none transition-all"
           aria-label="Toggle navigation menu"
         >
           {isOpen ? <X className="w-6 h-6 text-blue-900" /> : <Menu className="w-6 h-6" />}
@@ -144,7 +153,7 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
       {/* Mobile Drawer Menu */}
       <div
         id="mobile-menu"
-        className={`md:hidden fixed inset-x-0 top-[65px] bg-white border-t border-gray-100 shadow-xl transition-all duration-300 ease-in-out ${
+        className={`lg:hidden fixed inset-x-0 top-[65px] bg-white border-t border-gray-100 shadow-xl transition-all duration-300 ease-in-out ${
           isOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-4 pointer-events-none'
         }`}
       >

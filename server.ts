@@ -23,7 +23,11 @@ import {
   deleteContactMessage,
   getPortfolioSettings,
   updatePortfolioSettings,
-  isUsingMongoDB
+  isUsingMongoDB,
+  getAdmins,
+  createAdmin,
+  updateAdminPassword,
+  deleteAdmin
 } from './server/db';
 
 const app = express();
@@ -68,23 +72,45 @@ async function startServer() {
       return res.status(400).json({ error: 'ব্যবহারকারীর নাম এবং পাসওয়ার্ড দুটোই প্রদান করুন।' });
     }
 
-    // Direct comparison (for simplicity & config file based workflow) or hashed comparison
-    const isUsernameMatch = username === ADMIN_USERNAME;
-    let isPasswordMatch = password === ADMIN_PASSWORD;
+    try {
+      // 1. Try DB Admin check
+      const dbAdmins = await getAdmins();
+      const dbAdmin = dbAdmins.find(a => a.username === username);
 
-    // Check if passwords matches (supports plain text for env simplicity or optionally hashed if they want)
-    if (!isPasswordMatch && ADMIN_PASSWORD.startsWith('$2')) {
-      // It's bcrypt hashed
-      try {
-        isPasswordMatch = await bcryptjs.compare(password, ADMIN_PASSWORD);
-      } catch (e) {
-        console.error('Bcrypt comparison failed', e);
+      if (dbAdmin) {
+        const isDbPasswordMatch = await bcryptjs.compare(password, dbAdmin.passwordHash);
+        if (isDbPasswordMatch) {
+          const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1d' });
+          return res.json({ success: true, token, username });
+        }
       }
-    }
 
-    if (isUsernameMatch && isPasswordMatch) {
-      const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1d' });
-      return res.json({ success: true, token, username });
+      // 2. Fallback check from environment variables (for resilience)
+      const isUsernameMatch = username === ADMIN_USERNAME;
+      let isPasswordMatch = password === ADMIN_PASSWORD;
+
+      if (isUsernameMatch) {
+        if (!isPasswordMatch && ADMIN_PASSWORD.startsWith('$2')) {
+          try {
+            isPasswordMatch = await bcryptjs.compare(password, ADMIN_PASSWORD);
+          } catch (e) {
+            console.error('Bcrypt comparison failed', e);
+          }
+        }
+        if (isPasswordMatch) {
+          const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1d' });
+          return res.json({ success: true, token, username });
+        }
+      }
+    } catch (dbErr: any) {
+      console.error('Database login lookup failed, trying env fallback:', dbErr);
+      // fallback straight to env
+      const isUsernameMatch = username === ADMIN_USERNAME;
+      const isPasswordMatch = password === ADMIN_PASSWORD;
+      if (isUsernameMatch && isPasswordMatch) {
+        const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '1d' });
+        return res.json({ success: true, token, username });
+      }
     }
 
     return res.status(401).json({ error: 'ভুল ইউজারনেম অথবা পাসওয়ার্ড!' });
@@ -246,6 +272,102 @@ async function startServer() {
       res.json({ success: true, settings: updated });
     } catch (err: any) {
       res.status(500).json({ error: 'সেটিংস আপডেট করতে ব্যর্থ: ' + err.message });
+    }
+  });
+
+  // --- Admin User Management (Protected) ---
+  
+  // Get all admins
+  app.get('/api/admins', authenticateAdmin, async (req, res) => {
+    try {
+      const list = await getAdmins();
+      // Map to omit hashes for security
+      const safeList = list.map(a => ({
+        username: a.username,
+        createdAt: a.createdAt || 'N/A'
+      }));
+      res.json(safeList);
+    } catch (err: any) {
+      res.status(500).json({ error: 'অ্যাডমিনদের তালিকা লোড করতে ব্যর্থ: ' + err.message });
+    }
+  });
+
+  // Create new admin
+  app.post('/api/admins', authenticateAdmin, async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      if (!username || !password) {
+        return res.status(400).json({ error: 'ইউজারনেম এবং পাসওয়ার্ড প্রদান করুন।' });
+      }
+
+      const trimmedUser = username.trim().toLowerCase();
+      if (trimmedUser.length < 3) {
+        return res.status(400).json({ error: 'ইউজারনেম কমপক্ষে ৩ অক্ষরের হতে হবে।' });
+      }
+
+      const list = await getAdmins();
+      const exists = list.some(a => a.username.toLowerCase() === trimmedUser);
+      if (exists) {
+        return res.status(400).json({ error: 'এই ইউজারনেম দিয়ে ইতিমধ্যেই অ্যাডমিন তৈরি করা আছে।' });
+      }
+
+      const passwordHash = await bcryptjs.hash(password, 10);
+      const newAdmin = {
+        username: trimmedUser,
+        passwordHash,
+        createdAt: new Date().toLocaleDateString('bn-BD')
+      };
+
+      await createAdmin(newAdmin);
+      res.json({ success: true, message: 'নতুন অ্যাডমিন অ্যাকাউন্ট তৈরি করা হয়েছে।' });
+    } catch (err: any) {
+      res.status(500).json({ error: 'অ্যাডমিন তৈরি করতে ব্যর্থ: ' + err.message });
+    }
+  });
+
+  // Change password for an admin
+  app.put('/api/admins/password', authenticateAdmin, async (req, res) => {
+    try {
+      const { username, newPassword } = req.body;
+      if (!username || !newPassword) {
+        return res.status(400).json({ error: 'ইউজারনেম এবং নতুন পাসওয়ার্ড অবশ্যই পূরণ করতে হবে।' });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।' });
+      }
+
+      const hash = await bcryptjs.hash(newPassword, 10);
+      const updated = await updateAdminPassword(username.trim().toLowerCase(), hash);
+
+      if (updated) {
+        res.json({ success: true, message: 'পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।' });
+      } else {
+        res.status(404).json({ error: 'কোনো অ্যাডমিন অ্যাকাউন্ট পাওয়া যায়নি।' });
+      }
+    } catch (err: any) {
+      res.status(500).json({ error: 'পাসওয়ার্ড পরিবর্তন করতে ব্যর্থ: ' + err.message });
+    }
+  });
+
+  // Delete an admin
+  app.delete('/api/admins/:username', authenticateAdmin, async (req, res) => {
+    try {
+      const targetUser = req.params.username.toLowerCase().trim();
+      
+      const list = await getAdmins();
+      if (list.length <= 1) {
+        return res.status(400).json({ error: 'সিস্টেমে কমপক্ষে একজন অ্যাডমিন থাকা আবশ্যক। আপনি শেষ অ্যাডমিন ডিলিট করতে পারবেন না।' });
+      }
+
+      const deleted = await deleteAdmin(targetUser);
+      if (deleted) {
+        res.json({ success: true, message: 'অ্যাডমিন অ্যাকাউন্টটি সফলভাবে ডিলিট করা হয়েছে।' });
+      } else {
+        res.status(404).json({ error: 'অ্যাডমিন অ্যাকাউন্ট খুঁজে পাওয়া যায়নি।' });
+      }
+    } catch (err: any) {
+      res.status(500).json({ error: 'অ্যাডমিন ডিলিট করতে ব্যর্থ: ' + err.message });
     }
   });
 

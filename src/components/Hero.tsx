@@ -109,8 +109,17 @@ export default function Hero({ settings }: { settings?: any }) {
 
               {/* Graphic Icon Area representing Journalist */}
               <div className="flex flex-col items-center justify-center py-6 text-blue-200/90">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-blue-800 to-indigo-950 flex items-center justify-center shadow-inner border border-white/10 mb-4">
-                  <Newspaper className="w-12 h-12 sm:w-14 sm:h-14 text-blue-400" />
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-blue-800 to-indigo-950 flex items-center justify-center shadow-inner border border-white/10 mb-4 overflow-hidden">
+                  {settings?.logoUrl ? (
+                    <img 
+                      src={settings.logoUrl} 
+                      alt={settings?.heroTitle || 'আরফান আলী'} 
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <Newspaper className="w-12 h-12 sm:w-14 sm:h-14 text-blue-400" />
+                  )}
                 </div>
                 <h3 className="text-lg font-bold text-white tracking-wide">{settings?.heroTitle || 'আরফান আলী'}</h3>
                 <span className="text-xs text-blue-300 font-medium mt-1">শেরপুর সরকারি কলেজ সাংবাদিক সমিতি</span>
