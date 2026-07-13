@@ -12,6 +12,7 @@ export interface NewsReport {
   summary: string;
   fullContent: string;
   readTime: string;
+  url?: string;
 }
 
 export interface TimelineItem {

@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Phone, Globe, Award, MessageSquare, BookOpen, Newspaper, Lock } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface NavbarProps {
   activeSection: string;
@@ -15,6 +16,8 @@ interface NavbarProps {
 export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,28 +32,44 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
   }, []);
 
   const navItems = [
-    { label: 'আমার সম্পর্কে', href: '#about', icon: BookOpen },
-    { label: 'বর্তমান কর্মক্ষেত্র', href: '#current', icon: Award },
-    { label: 'সংবাদ প্রতিবেদন', href: '#news', icon: Newspaper },
-    { label: 'কাজের অভিজ্ঞতা', href: '#experience', icon: Globe },
-    { label: 'যোগাযোগ', href: '#contact', icon: MessageSquare },
+    { label: 'আমার সম্পর্কে', path: '/about', href: '#about', icon: BookOpen },
+    { label: 'বর্তমান কর্মক্ষেত্র', path: '/roles', href: '#current', icon: Award },
+    { label: 'সংবাদ প্রতিবেদন', path: '/news', href: '#news', icon: Newspaper },
+    { label: 'কাজের অভিজ্ঞতা', path: '/experience', href: '#experience', icon: Globe },
+    { label: 'যোগাযোগ', path: '/contact', href: '#contact', icon: MessageSquare },
   ];
 
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string, href: string) => {
     e.preventDefault();
     setIsOpen(false);
-    const element = document.querySelector(href);
-    if (element) {
-      const offset = 80; // height of sticky navbar
-      const bodyRect = document.body.getBoundingClientRect().top;
-      const elementRect = element.getBoundingClientRect().top;
-      const elementPosition = elementRect - bodyRect;
-      const offsetPosition = elementPosition - offset;
+    
+    if (location.pathname === '/') {
+      const element = document.querySelector(href);
+      if (element) {
+        const offset = 80; // height of sticky navbar
+        const bodyRect = document.body.getBoundingClientRect().top;
+        const elementRect = element.getBoundingClientRect().top;
+        const elementPosition = elementRect - bodyRect;
+        const offsetPosition = elementPosition - offset;
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth',
+        });
+      }
+    } else {
+      navigate(path);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    setIsOpen(false);
+    if (location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      navigate('/');
     }
   };
 
@@ -77,8 +96,8 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center">
         {/* Logo/Name */}
         <a
-          href="#home"
-          onClick={(e) => handleLinkClick(e, '#root')}
+          href="/"
+          onClick={handleLogoClick}
           className="flex items-center space-x-2 text-lg lg:text-xl font-bold tracking-tight text-blue-950 transition duration-300 hover:text-blue-700 whitespace-nowrap"
           id="navbar-logo"
         >
@@ -99,12 +118,12 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
         <div className="hidden lg:flex items-center space-x-0.5 xl:space-x-1" id="navbar-desktop-menu">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeSection === item.href.slice(1);
+            const isActive = location.pathname === item.path || (location.pathname === '/' && activeSection === item.href.slice(1));
             return (
               <a
                 key={item.href}
-                href={item.href}
-                onClick={(e) => handleLinkClick(e, item.href)}
+                href={item.path}
+                onClick={(e) => handleLinkClick(e, item.path, item.href)}
                 className={`flex items-center space-x-1 px-2.5 py-2 rounded-lg text-xs xl:text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                   isActive
                     ? 'text-blue-900 bg-blue-50/70 border-b-2 border-blue-600 rounded-b-none'
@@ -121,7 +140,7 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
         {/* Action Button */}
         <div className="hidden lg:flex items-center space-x-1.5 xl:space-x-2.5 whitespace-nowrap" id="navbar-desktop-action">
           <button
-            onClick={onOpenAdmin}
+            onClick={() => navigate('/admin')}
             className="flex items-center space-x-1 bg-gray-50 text-blue-900 border border-blue-200 hover:bg-blue-100 px-2 py-1.5 xl:px-3 xl:py-2 rounded-lg text-[11px] xl:text-xs font-bold transition cursor-pointer shadow-sm whitespace-nowrap"
             title="অ্যাডমিন ড্যাশবোর্ড"
           >
@@ -160,12 +179,12 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
         <div className="flex flex-col p-4 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeSection === item.href.slice(1);
+            const isActive = location.pathname === item.path || (location.pathname === '/' && activeSection === item.href.slice(1));
             return (
               <a
                 key={item.href}
-                href={item.href}
-                onClick={(e) => handleLinkClick(e, item.href)}
+                href={item.path}
+                onClick={(e) => handleLinkClick(e, item.path, item.href)}
                 className={`flex items-center space-x-3 p-3 rounded-lg text-base font-semibold transition ${
                   isActive
                     ? 'bg-blue-50 text-blue-900 border-l-4 border-blue-600'
@@ -179,7 +198,7 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
           })}
           <div className="pt-4 border-t border-gray-100 flex flex-col space-y-2">
             <button
-              onClick={() => { setIsOpen(false); onOpenAdmin(); }}
+              onClick={() => { setIsOpen(false); navigate('/admin'); }}
               className="flex items-center justify-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-lg transition text-sm cursor-pointer"
             >
               <Lock className="w-4 h-4 text-blue-800" />

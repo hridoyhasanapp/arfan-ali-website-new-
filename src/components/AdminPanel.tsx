@@ -76,6 +76,7 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
   const [newsContent, setNewsContent] = useState('');
   const [newsSummary, setNewsSummary] = useState('');
   const [newsDate, setNewsDate] = useState('');
+  const [newsUrl, setNewsUrl] = useState('');
 
   // Settings Editor State
   const [settingsForm, setSettingsForm] = useState<SettingsType>({
@@ -243,7 +244,8 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
       source: newsSource.trim(),
       fullContent: newsContent.trim(),
       summary: newsSummary.trim() || undefined,
-      date: newsDate.trim() || undefined
+      date: newsDate.trim() || undefined,
+      url: newsUrl.trim() || undefined
     };
 
     try {
@@ -278,6 +280,7 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
     setNewsContent(article.fullContent);
     setNewsSummary(article.summary);
     setNewsDate(article.date);
+    setNewsUrl(article.url || '');
     setIsEditingNews(true);
   };
 
@@ -312,6 +315,7 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
     setNewsContent('');
     setNewsSummary('');
     setNewsDate('');
+    setNewsUrl('');
     setIsEditingNews(false);
   };
 
@@ -771,7 +775,7 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid md:grid-cols-3 gap-6">
                     {/* Source */}
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">সংবাদের প্রকাশক উৎস / মাধ্যম</label>
@@ -793,6 +797,18 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
                         placeholder="যেমন: ১২ জুলাই, ২০২৬"
                         value={newsDate}
                         onChange={(e) => setNewsDate(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 focus:border-blue-600 rounded-xl px-4 py-2.5 focus:outline-none text-sm font-semibold"
+                      />
+                    </div>
+
+                    {/* News Link/URL (Optional) */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">সংবাদের মূল লিংক / ইউআরএল (ঐচ্ছিক)</label>
+                      <input
+                        type="url"
+                        placeholder="যেমন: https://thedailycampus.com/..."
+                        value={newsUrl}
+                        onChange={(e) => setNewsUrl(e.target.value)}
                         className="w-full bg-gray-50 border border-gray-200 focus:border-blue-600 rounded-xl px-4 py-2.5 focus:outline-none text-sm font-semibold"
                       />
                     </div>

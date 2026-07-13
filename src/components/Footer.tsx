@@ -42,8 +42,6 @@ export default function Footer({ settings, onOpenAdmin }: { settings?: any; onOp
               <Lock className="w-3 h-3 text-blue-500" />
               <span>অ্যাডমিন লগইন (Admin Login)</span>
             </button>
-            <span className="text-gray-800">•</span>
-            <p className="font-mono text-[10px] text-gray-700">DESIGNED FOR TRUTH & INTEGRITY</p>
           </div>
         </div>
 

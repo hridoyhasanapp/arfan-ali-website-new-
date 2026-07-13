@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { Newspaper, MapPin, Users, Calendar, ArrowUpRight } from 'lucide-react';
+import { motion } from 'motion/react';
 
 export default function CurrentRoles() {
   const roles = [
@@ -57,8 +58,13 @@ export default function CurrentRoles() {
           {roles.map((role, idx) => {
             const Icon = role.icon;
             return (
-              <div
+              <motion.div
                 key={idx}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: idx * 0.1, ease: "easeOut" }}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
                 className={`bg-white p-8 rounded-2xl shadow-sm border-t-4 ${role.color} hover:shadow-md transition-all duration-300 flex flex-col justify-between`}
               >
                 <div>
@@ -92,7 +98,7 @@ export default function CurrentRoles() {
                       href={role.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-1.5 text-sm font-bold text-blue-900 hover:text-blue-700 transition"
+                      className="inline-flex items-center space-x-1.5 text-sm font-bold text-blue-900 hover:text-blue-700 transition cursor-pointer"
                     >
                       <span>ওয়েবসাইট পরিদর্শন করুন</span>
                       <ArrowUpRight className="w-4 h-4" />
@@ -103,7 +109,7 @@ export default function CurrentRoles() {
                     শেরপুর জেলা শাখা • শেরপুর সরকারি কলেজ
                   </div>
                 )}
-              </div>
+              </motion.div>
             );
           })}
         </div>

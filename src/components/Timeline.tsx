@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { TIMELINE_DATA } from '../data';
 import { Calendar, Award, ChevronDown, ChevronUp, Radio, Newspaper } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function Timeline() {
   const [expandedId, setExpandedId] = useState<string | null>('1'); // Expand first item by default
@@ -39,7 +40,14 @@ export default function Timeline() {
             const isLatest = index === 0;
 
             return (
-              <div key={item.id} className="relative pl-8 md:pl-10 group">
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
+                className="relative pl-8 md:pl-10 group"
+              >
                 
                 {/* Timeline Circle Node Icon indicator */}
                 <span
@@ -70,8 +78,9 @@ export default function Timeline() {
                 </div>
 
                 {/* Main Accordion Card Content */}
-                <div
+                <motion.div
                   onClick={() => toggleExpand(item.id)}
+                  whileHover={{ y: -2, transition: { duration: 0.2 } }}
                   className={`bg-white p-6 rounded-2xl border transition-all duration-300 cursor-pointer select-none ${
                     isExpanded
                       ? 'border-blue-300 shadow-md'
@@ -121,25 +130,33 @@ export default function Timeline() {
                   )}
 
                   {/* Accordion Expandable Body */}
-                  <div
-                    className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                      isExpanded ? 'max-h-60 opacity-100 mt-4 pt-4 border-t border-gray-100' : 'max-h-0 opacity-0'
-                    }`}
-                  >
-                    <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
-                      {item.description}
-                    </p>
-                    
-                    {/* Visual badges of skills practiced during this tenure */}
-                    <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-gray-500">
-                      <span className="bg-gray-100 px-2.5 py-1 rounded-md">সংবাদ সংগ্রহ</span>
-                      <span className="bg-gray-100 px-2.5 py-1 rounded-md">তদন্তমূলক প্রতিবেদন</span>
-                      <span className="bg-gray-100 px-2.5 py-1 rounded-md">ফিচার ও সাক্ষাৎকার</span>
-                    </div>
-                  </div>
+                  <AnimatePresence initial={false}>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                          <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+                            {item.description}
+                          </p>
+                          
+                          {/* Visual badges of skills practiced during this tenure */}
+                          <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-gray-500">
+                            <span className="bg-gray-100 px-2.5 py-1 rounded-md">সংবাদ সংগ্রহ</span>
+                            <span className="bg-gray-100 px-2.5 py-1 rounded-md">তদন্তমূলক প্রতিবেদন</span>
+                            <span className="bg-gray-100 px-2.5 py-1 rounded-md">ফিচার ও সাক্ষাৎকার</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             );
           })}
         </div>

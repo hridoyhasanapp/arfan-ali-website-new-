@@ -5,6 +5,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Search, Calendar, Clock, X, ArrowRight, BookOpen, Share2, MapPin, Tag } from 'lucide-react';
+import { motion } from 'motion/react';
 import { MOCK_NEWS_REPORTS } from '../data';
 import { NewsReport } from '../types';
 
@@ -98,9 +99,14 @@ export default function NewsSection({ news }: { news?: NewsReport[] }) {
         {/* News Grid */}
         {filteredReports.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredReports.map((report) => (
-              <article
+            {filteredReports.map((report, idx) => (
+              <motion.article
                 key={report.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: idx * 0.05, ease: "easeOut" }}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
                 className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-300 overflow-hidden flex flex-col justify-between"
               >
                 <div className="p-6">
@@ -118,7 +124,13 @@ export default function NewsSection({ news }: { news?: NewsReport[] }) {
 
                   {/* Headline */}
                   <h3
-                    onClick={() => setActiveReport(report)}
+                    onClick={() => {
+                      if (report.url) {
+                        window.open(report.url, '_blank', 'noopener,noreferrer');
+                      } else {
+                        setActiveReport(report);
+                      }
+                    }}
                     className="text-xl font-extrabold text-gray-900 group-hover:text-blue-900 transition-colors duration-200 cursor-pointer line-clamp-2 leading-snug mb-3"
                   >
                     {report.title}
@@ -152,16 +164,28 @@ export default function NewsSection({ news }: { news?: NewsReport[] }) {
                     </button>
 
                     {/* View Details button */}
-                    <button
-                      onClick={() => setActiveReport(report)}
-                      className="inline-flex items-center space-x-1 text-xs font-bold text-blue-950 hover:text-blue-700 transition"
-                    >
-                      <span>বিস্তারিত পড়ুন</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+                    {report.url ? (
+                      <a
+                        href={report.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center space-x-1 text-xs font-bold text-blue-950 hover:text-blue-700 transition cursor-pointer"
+                      >
+                        <span>বিস্তারিত পড়ুন</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => setActiveReport(report)}
+                        className="inline-flex items-center space-x-1 text-xs font-bold text-blue-950 hover:text-blue-700 transition cursor-pointer"
+                      >
+                        <span>বিস্তারিত পড়ুন</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
-              </article>
+              </motion.article>
             ))}
           </div>
         ) : (

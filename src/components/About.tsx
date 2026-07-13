@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { ShieldCheck, Target, Heart, Scale } from 'lucide-react';
+import { motion } from 'motion/react';
 
 export default function About({ settings }: { settings?: any }) {
   const values = [
@@ -67,12 +68,18 @@ export default function About({ settings }: { settings?: any }) {
             </p>
 
             {/* Quote Block */}
-            <div className="border-l-4 border-blue-600 bg-blue-50/60 p-6 rounded-r-xl">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="border-l-4 border-blue-600 bg-blue-50/60 p-6 rounded-r-xl"
+            >
               <p className="italic text-blue-950 font-medium text-lg leading-relaxed">
                 "{settings?.aboutQuote || 'সাংবাদিকতা কেবল একটি পেশা নয়, এটি সমাজ পরিবর্তনের এক মহৎ হাতিয়ার। নিরপেক্ষ সংবাদ পরিবেশন ও সমাজ সংস্কারের দায়িত্ব নিয়েই আমি প্রতিটি দিন কাজ করি।'}"
               </p>
               <span className="block mt-2 text-sm font-bold text-blue-800">— {settings?.heroTitle || 'আরফান আলী'}</span>
-            </div>
+            </motion.div>
           </div>
 
           {/* Core Values Bento Grid */}
@@ -80,16 +87,21 @@ export default function About({ settings }: { settings?: any }) {
             {values.map((val, idx) => {
               const Icon = val.icon;
               return (
-                <div
+                <motion.div
                   key={idx}
-                  className="bg-gray-50/80 hover:bg-blue-50/40 p-5 rounded-2xl border border-gray-100 transition duration-300 flex flex-col items-start"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: idx * 0.1, ease: "easeOut" }}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className="bg-gray-50/80 hover:bg-blue-50/40 p-5 rounded-2xl border border-gray-100 transition duration-300 flex flex-col items-start cursor-default"
                 >
                   <div className="bg-blue-100 text-blue-900 p-2.5 rounded-xl mb-4">
                     <Icon className="w-5 h-5" />
                   </div>
                   <h4 className="font-bold text-gray-900 text-lg mb-1">{val.title}</h4>
                   <p className="text-sm text-gray-600 leading-relaxed">{val.desc}</p>
-                </div>
+                </motion.div>
               );
             })}
           </div>
