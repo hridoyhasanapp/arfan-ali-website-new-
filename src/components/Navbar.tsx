@@ -74,29 +74,29 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
           : 'bg-white/80 backdrop-blur-sm py-4'
       }`}
     >
-      <div className="max-w-6xl mx-auto px-4 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center">
         {/* Logo/Name */}
         <a
           href="#home"
           onClick={(e) => handleLinkClick(e, '#root')}
-          className="flex items-center space-x-1.5 text-xl lg:text-2xl font-bold tracking-tight text-blue-950 transition duration-300 hover:text-blue-700 whitespace-nowrap"
+          className="flex items-center space-x-2 text-lg lg:text-xl font-bold tracking-tight text-blue-950 transition duration-300 hover:text-blue-700 whitespace-nowrap"
           id="navbar-logo"
         >
           {settings?.logoUrl ? (
             <img 
               src={settings.logoUrl} 
               alt="Logo" 
-              className="w-8 h-8 rounded-full object-cover mr-1 border border-blue-200" 
+              className="w-8 h-8 rounded-full object-cover mr-1.5 border border-blue-200" 
               referrerPolicy="no-referrer" 
             />
           ) : (
-            <span className="bg-blue-900 text-white p-1.5 rounded-lg text-xs mr-1 font-mono">AA</span>
+            <span className="bg-blue-900 text-white p-1.5 rounded-lg text-xs mr-1.5 font-mono">AA</span>
           )}
           <span>{settings?.heroTitle || 'আরফান আলী'}</span>
         </a>
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center space-x-1 xl:space-x-2" id="navbar-desktop-menu">
+        <div className="hidden lg:flex items-center space-x-0.5 xl:space-x-1" id="navbar-desktop-menu">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeSection === item.href.slice(1);
@@ -105,13 +105,13 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
                 key={item.href}
                 href={item.href}
                 onClick={(e) => handleLinkClick(e, item.href)}
-                className={`flex items-center space-x-1 px-2.5 py-2 rounded-lg text-sm xl:text-base font-semibold whitespace-nowrap transition-all duration-200 ${
+                className={`flex items-center space-x-1 px-2.5 py-2 rounded-lg text-xs xl:text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                   isActive
                     ? 'text-blue-900 bg-blue-50/70 border-b-2 border-blue-600 rounded-b-none'
                     : 'text-gray-600 hover:text-blue-700 hover:bg-gray-50'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5 opacity-70" />
+                <Icon className="hidden xl:inline-block w-3.5 h-3.5 opacity-70" />
                 <span>{item.label}</span>
               </a>
             );
@@ -119,10 +119,10 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
         </div>
 
         {/* Action Button */}
-        <div className="hidden lg:flex items-center space-x-2 whitespace-nowrap" id="navbar-desktop-action">
+        <div className="hidden lg:flex items-center space-x-1.5 xl:space-x-2.5 whitespace-nowrap" id="navbar-desktop-action">
           <button
             onClick={onOpenAdmin}
-            className="flex items-center space-x-1.5 bg-gray-50 text-blue-900 border border-blue-200 hover:bg-blue-100 px-2.5 py-2 rounded-lg text-xs font-bold transition cursor-pointer shadow-sm whitespace-nowrap"
+            className="flex items-center space-x-1 bg-gray-50 text-blue-900 border border-blue-200 hover:bg-blue-100 px-2 py-1.5 xl:px-3 xl:py-2 rounded-lg text-[11px] xl:text-xs font-bold transition cursor-pointer shadow-sm whitespace-nowrap"
             title="অ্যাডমিন ড্যাশবোর্ড"
           >
             <Lock className="w-3 h-3 text-blue-800" />
@@ -132,7 +132,7 @@ export default function Navbar({ activeSection, onOpenAdmin, settings }: NavbarP
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2.5 py-2 rounded-lg text-xs shadow-sm hover:shadow transition duration-200 whitespace-nowrap"
+            className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2 py-1.5 xl:px-3 xl:py-2 rounded-lg text-[11px] xl:text-xs shadow-sm hover:shadow transition duration-200 whitespace-nowrap"
           >
             <Phone className="w-3 h-3" />
             <span>হোয়াটসঅ্যাপ</span>

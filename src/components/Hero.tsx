@@ -98,18 +98,18 @@ export default function Hero({ settings }: { settings?: any }) {
             <div className="absolute -inset-2 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-full opacity-10 animate-spin-slow" />
             
             {/* Visual Portrait Card */}
-            <div className="relative w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 bg-blue-900/60 border-4 border-white/25 rounded-3xl shadow-2xl overflow-hidden flex flex-col justify-between p-6 backdrop-blur-md">
+            <div className="relative w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 bg-white/10 border border-white/20 rounded-3xl shadow-2xl overflow-hidden flex flex-col justify-between p-6 backdrop-blur-md">
               {/* Card Header decoration */}
               <div className="flex justify-between items-start">
-                <div className="bg-blue-600 text-[10px] uppercase font-mono tracking-widest px-2.5 py-1 rounded-full text-white font-bold">
-                  Press Badge
+                <div className="text-[10px] uppercase font-mono tracking-widest px-2.5 py-1 text-blue-200 font-extrabold border border-blue-500/20 bg-blue-500/10 rounded-full">
+                  পেশাদার পরিচিতি
                 </div>
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+                <Newspaper className="w-4 h-4 text-blue-400" />
               </div>
 
               {/* Graphic Icon Area representing Journalist */}
-              <div className="flex flex-col items-center justify-center py-6 text-blue-200/90">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-blue-800 to-indigo-950 flex items-center justify-center shadow-inner border border-white/10 mb-4 overflow-hidden">
+              <div className="flex flex-col items-center justify-center py-4 text-blue-100">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-blue-800 to-indigo-950 flex items-center justify-center shadow-lg border border-white/20 mb-4 overflow-hidden relative group">
                   {settings?.logoUrl ? (
                     <img 
                       src={settings.logoUrl} 
@@ -118,20 +118,18 @@ export default function Hero({ settings }: { settings?: any }) {
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <Newspaper className="w-12 h-12 sm:w-14 sm:h-14 text-blue-400" />
+                    <div className="flex flex-col items-center justify-center text-white">
+                      <span className="text-2xl font-black font-mono tracking-wider">AA</span>
+                    </div>
                   )}
                 </div>
-                <h3 className="text-lg font-bold text-white tracking-wide">{settings?.heroTitle || 'আরফান আলী'}</h3>
-                <span className="text-xs text-blue-300 font-medium mt-1">শেরপুর সরকারি কলেজ সাংবাদিক সমিতি</span>
+                <h3 className="text-xl font-bold text-white tracking-wide">{settings?.heroTitle || 'আরফান আলী'}</h3>
+                <span className="text-xs text-blue-300 font-medium mt-1">শেরপুর জেলা প্রতিনিধি ও সাংবাদিক</span>
               </div>
 
               {/* Card Footer Info */}
-              <div className="border-t border-white/10 pt-3 flex justify-between items-center text-[10px] font-mono text-blue-300">
-                <div>ID: AA-606034</div>
-                <div className="flex items-center space-x-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <span>ONLINE VERIFIED</span>
-                </div>
+              <div className="border-t border-white/10 pt-3 text-center text-[10px] text-blue-200/70 font-semibold tracking-wide">
+                শেরপুর সরকারি কলেজ সাংবাদিক সমিতি
               </div>
             </div>
           </div>
