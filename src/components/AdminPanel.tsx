@@ -485,13 +485,6 @@ export default function AdminPanel({ onClose, onRefreshPortfolio }: AdminPanelPr
 
           {/* Form */}
           <form onSubmit={handleLogin} className="p-8 space-y-5">
-            {/* Credentials Info Help Box */}
-            <div className="bg-blue-50 border border-blue-100 text-blue-800 text-xs p-3.5 rounded-xl space-y-1 font-medium">
-              <p className="font-bold text-blue-900">🔑 লগইন বিবরণী (নিরাপদ ডিফল্ট):</p>
-              <p>ইউজারনেম: <code className="bg-blue-100 px-1 py-0.5 rounded text-blue-900 font-mono select-all">admin</code></p>
-              <p>পাসওয়ার্ড: <code className="bg-blue-100 px-1 py-0.5 rounded text-blue-900 font-mono select-all">securepassword123</code></p>
-            </div>
-
             {loginError && (
               <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm p-4 rounded-xl flex items-center space-x-2 font-medium">
                 <AlertCircle className="w-5 h-5 shrink-0 text-rose-500" />
